@@ -2,7 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Architect3D - Floorplan</title>
+<link rel="icon" type="image/png" href="images/logo.png">
+<!-- <img src="images/Celume_logo(orange)PNG.png" alt="Celume Logo"> -->
+
+<title>hacks and racks demo</title>
 <link rel="stylesheet" href="css/jquery-ui.css">
 <link rel="stylesheet" href="css/bootstrap.min.css">
 
@@ -19,194 +22,207 @@
 <script src="js/items.js"></script>
 <script src="js/items_gltf.js"></script>
 <script src="js/app.js"></script>
+
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  #app-left, #app-right {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #app-left {
+    background: #fafbfc;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+    min-width: 400px;
+    max-width: 100vw;
+    width: 60%;
+    flex: 1 1 60%;
+    display: flex;
+    flex-direction: column;
+  }
+  #app-right {
+    background: #fff;
+    min-width: 320px;
+    width: 40%;
+    flex: 1 1 40%;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.03);
+    padding: 48px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+  .card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  #floorplanner, #viewer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: none;
+  }
+  #floorplanner-controls {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 20px 0;
+    padding: 0 20px;
+    width: auto;
+    z-index: 3;
+  }
+  #draw-walls-hint {
+    z-index: 4;
+  }
+</style>
 </head>
 
 <body>
-	<div id='interfaces' class='card'>
-		<div id="floorplanner" class='front'>
-			<div id="floorplanner-controls">
-				<a href="#"
-					class="btn btn-default btn-sm glyphicon glyphicon-floppy-disk"
-					id="new2d" title="New Layout"></a>
-				<a href="#"	class="btn btn-default btn-sm glyphicon glyphicon-floppy-save" id="saveFile2d" title="Save Layout"></a>
-				<a class="btn btn-sm btn-default btn-file glyphicon glyphicon-floppy-open">
-					<input type="file" class="hidden-input" id="loadFile2d">
-				</a>
-				<button id="move" class="btn btn-sm btn-default" title="Move Walls">
-					<span class="glyphicon glyphicon-move"></span>
-				</button>
-				<button id="draw" class="btn btn-sm btn-default"
-					title="Draw New Walls">
-					<span class="glyphicon glyphicon-pencil"></span>
-				</button>
-				<button id="delete" class="btn btn-sm btn-default"
-					title="Delete Walls">
-					<span class="glyphicon glyphicon-remove"></span>
-				</button>
-				<button id="help2d" class="btn btn-sm btn-default"
-					title="Tips&#10;Shift Key: Snap To Axis and Snap to Grid&#10;ESC: Stop drawing walls&#10;DbL-Click(Corner): Adjust Elevation&#10;Click(Room): Change Name&#10;">
-					<span class="glyphicon glyphicon-info-sign"></span>
-				</button>
-			</div>
-			<div class="btn-hint ">Press the "Esc" key to stop drawing
-				walls</div>
-			<canvas id="floorplanner-canvas"></canvas>
-		</div>
-
-		<div id="viewer" class='back'>
-			<div id="main-controls">
-				<a href="#" class="btn btn-default btn-sm glyphicon glyphicon-floppy-disk" id="new" title="New Layout"></a>
-				<a href="#"	class="btn btn-default btn-sm glyphicon glyphicon-floppy-save" id="saveFile" title="Save Layout"></a>
-				<a class="btn btn-sm btn-default btn-file glyphicon glyphicon-floppy-open">
-					<input type="file" class="hidden-input" id="loadFile">
-				</a>
-				<a href="#" class="btn btn-default btn-sm glyphicon glyphicon-asterisk"	id="saveMesh" title="Save Scene as a mesh"></a>
-				<a href="#" class="btn btn-default btn-sm glyphicon glyphicon-export"	id="saveGLTF" title="Save Scene as a GLTF"></a>
-			</div>
-		</div>
-	</div>
-	<div id='interface-controls'>
-		<button id="showFloorPlan" class="btn btn-sm btn-default active"
-			title="Edit 2D floorplan">
-			<span class="glyphicon glyphicon-move"></span> Floor Plan
-		</button>
-		<button id="showDesign" class="btn btn-sm btn-default"
-			title="Edit 3D floorplan">
-			<span class="glyphicon glyphicon-move"></span> 3D
-		</button>
-		<div class="btn-group-vertical" id='viewcontrols' >
-			<div class="btn btn-sm btn-default">
-		            <a class="btn btn-default bottom" href="#" id="leftview" title="Show side view (left)">
-		              <span class="glyphicon glyphicon glyphicon-object-align-left"></span>
-		            </a>
-		            <span class="btn-group-vertical">
-		              <a class="btn btn-default" href="#" id="topview" title="Show top view">
-		                <span class="glyphicon glyphicon glyphicon-object-align-horizontal"></span>
-		              </a>
-		              <a class="btn btn-default" href="#" id="isometryview" title="Show 3d view">
-		                <span class="glyphicon glyphicon glyphicon-inbox"></span>
-		              </a>
-		              <a class="btn btn-default" href="#" id="frontview" title="Show front view">
-		                <span class="glyphicon glyphicon glyphicon-object-align-vertical"></span>
-		              </a>
-		            </span>
-		            <a class="btn btn-default bottom" href="#" id="rightview" title="Show side view (right)" >
-		              <span class="glyphicon glyphicon glyphicon-object-align-right"></span>
-		            </a>
-	        </div>
-	        <button id="showSwitchCameraMode" class="btn btn-sm btn-default" title="Switch Camera ortho/perspective">
-				<span class="glyphicon glyphicon-camera"></span>
-			</button>
-			<button id="showSwitchWireframeMode" class="btn btn-sm btn-default" title="Switch wireframe mode">
-				<span class="glyphicon glyphicon-pencil"></span>
-			</button>
+  <div style="display: flex; height: 100vh;">
+    <!-- Left: App UI -->
+    <div id="app-left" style="flex: 1 1 60%; min-width: 400px; background: #fafbfc; box-shadow: 2px 0 8px rgba(0,0,0,0.03); position: relative;">
+      <div id='interfaces' class='card'>
+        <div id="floorplanner" class='front'>
+          <div id="floorplanner-controls">
+            <button id="move" class="btn btn-sm btn-default" title="Move Walls">
+              <span class="glyphicon glyphicon-move"></span>
+            </button>
+            <button id="draw" class="btn btn-sm btn-default"
+              title="Draw New Walls">
+              <span class="glyphicon glyphicon-pencil"></span>
+            </button>
+            <button id="delete" class="btn btn-sm btn-default"
+              title="Delete Walls">
+              <span class="glyphicon glyphicon-remove"></span>
+            </button>
+            <button id="help2d" class="btn btn-sm btn-default"
+              title="Tips&#10;Shift Key: Snap To Axis and Snap to Grid&#10;ESC: Stop drawing walls&#10;DbL-Click(Corner): Adjust Elevation&#10;Click(Room): Change Name&#10;">
+              <span class="glyphicon glyphicon-info-sign"></span>
+            </button>
+          </div>
+          <div class="btn-hint ">Press the "Esc" key to stop drawing
+            walls</div>
+          <canvas id="floorplanner-canvas"></canvas>
         </div>
-		<button id="showAddItems" class="btn btn-sm btn-default" data-toggle="modal" data-target="#add-items-modal" title="Add/Remove items in 3D">
-			<span class="glyphicon glyphicon-plus"></span>
-		</button>
-<!-- 		<button id="showFirstPerson" class="btn btn-sm btn-default" title="Walk through"> -->
-<!-- 			<span class="glyphicon glyphicon-eye-open"></span> -->
-<!-- 		</button> -->
-	</div>
 
-	<!-- Add Items -->
-	<div class="modal fade" id="add-items-modal" role = "dialog">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-		          <button type="button" class="close" data-dismiss="modal">&times;</button>
-		          <h4 class="modal-title">Furniture Inventory</h4>
-		        </div>
-		        <div class="modal-body">
-		          <div id="add-items" class="panel-group">
+        <div id="viewer" class='back'>
+          <div id="main-controls">
+          </div>
+        </div>
+      </div>
+      <div id='interface-controls'>
+        <button id="showFloorPlan" class="btn btn-sm btn-default active"
+          title="Edit 2D floorplan">
+          <span style="display:inline-block;vertical-align:middle;width:1.5em;height:1.5em;">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.5L12 4L21 10.5V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V10.5Z" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 21V12H15V21" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span style="margin-left:0.5em;vertical-align:middle;">Floor Plan</span>
+        </button>
+        <button id="showDesign" class="btn btn-sm btn-default"
+          title="Edit 3D floorplan">
+          <span style="display:inline-block;vertical-align:middle;width:1.5em;height:1.5em;">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="2" stroke="#333" stroke-width="2"/><rect x="7" y="7" width="3" height="10" fill="#333"/><rect x="14" y="7" width="3" height="10" fill="#333"/></svg>
+          </span>
+          <span style="margin-left:0.5em;vertical-align:middle;">Design your room</span>
+        </button>
+      </div>
 
-					<div id="floor-items" class="panel panel-default">
-						<div id="floor-items-header" class="panel-heading">
-							<h4 class="panel-title">
-							<a data-toggle="collapse" data-parent="#add-items" href="#floor-items-body">Floor Items</a>
-						</h4>
-					</div>
-						<div id="floor-items-body" class="panel-collapse collapse inventory-content">
-							<div class="row panel-body" id="floor-items-wrapper">
-								<!-- Items added here by items.js -->
-							</div>
-						</div>
-					</div>
-
-
-					<div id="roof-items" class="panel panel-default">
-						<div id="roof-items-header" class="panel-heading">
-							<h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#add-items" href="#roof-items-body">Ceiling Items</a>
-							</h4>
-						</div>
-						<div id="roof-items-body" class="panel-collapse collapse inventory-content">
-							<div class="row panel-body" id="roof-items-wrapper">
-								<!-- Items added here by items.js -->
-							</div>
-						</div>
-					</div>
-
-
-					<div id="wall-items" class="panel panel-default">
-						<div id="wall-items-header" class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#add-items" href="#wall-items-body">Wall Items</a></h4></div>
-						<div id="wall-items-body" class="panel-collapse collapse inventory-content">
-							<div class="row panel-body" id="wall-items-wrapper">
-								<!-- Items added here by items.js -->
-							</div>
-						</div>
-					</div>
-					<div id="in-wall-items" class="panel panel-default">
-						<div id="in-wall-items-header" class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#add-items" href="#in-wall-items-body">In Wall Items</a></h4></div>
-						<div id="in-wall-items-body" class="panel-collapse collapse inventory-content">
-							<div class="row panel-body" id="in-wall-items-wrapper">
-								<!-- Items added here by items.js -->
-							</div>
-						</div>
-					</div>
-					<div id="in-wall-floor-items" class="panel panel-default">
-						<div id="in-wall-floor-items-header" class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#add-items" href="#in-wall-floor-items-body">In Wall Floor Items</a></h4></div>
-						<div id="in-wall-floor-items-body" class="panel-collapse collapse inventory-content">
-							<div class="row panel-body" id="in-wall-floor-items-wrapper">
-								<!-- Items added here by items.js -->
-							</div>
-						</div>
-					</div>
-					<div id="on-floor-items" class="panel panel-default">
-						<div id="on-floor-items-header" class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#add-items" href="#on-floor-items-body">On Floor Items</a></h4></div>
-						<div id="on-floor-items-body" class="panel-collapse collapse inventory-content">
-							<div class="row panel-body" id="on-floor-items-wrapper">
-								<!-- Items added here by items.js -->
-							</div>
-						</div>
-					</div>
-					<div id="wall-floor-items" class="panel panel-default">
-						<div id="wall-floor-items-header" class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#add-items" href="#wall-floor-items-body">Wall-Floor Items</a></h4></div>
-						<div id="wall-floor-items-body" class="panel-collapse collapse inventory-content">
-							<div class="row panel-body" id="wall-floor-items-wrapper">
-								<!-- Items added here by items.js -->
-							</div>
-						</div>
-					</div>
-					<div id="item-items" class="panel panel-default">
-						<div id="item-items-header" class="panel-heading">
-							<h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#add-items" href="#item-items-body">Anywhere Items</a>
-							</h4>
-						</div>
-						<div id="item-items-body" class="panel-collapse collapse inventory-content">
-							<div class="row panel-body" id="item-items-wrapper">
-								<!-- Items added here by items.js -->
-							</div>
-						</div>
-					</div>
-				</div>
-		        </div>
-		        <div class="modal-footer">
-		          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-		        </div>
-			</div>
-		</div>
-	</div>
+      <!-- Add Items -->
+      <div class="modal fade" id="add-items-modal" role = "dialog">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title">Floor Items</h4>
+            </div>
+            <div class="modal-body">
+              <div id="add-items" class="panel-group">
+                <div class="row panel-body" id="floor-items-wrapper" style="display: flex; flex-direction: column; gap: 1em;">
+                  <button class="add-item-btn" data-model-name="Dresser - White" data-model-url="images/dresser_white.png" style="display: flex; align-items: center; gap: 1em; border: none; background: none; cursor: pointer;">
+                    <img src="images/dresser_white.png" alt="Dresser - White" style="width: 64px; height: 64px; object-fit: contain;"/>
+                    <span style="font-size: 1.1em;">Dresser - White</span>
+                  </button>
+                  <button class="add-item-btn" data-model-name="Wardrobe - White" data-model-url="images/wardrobe_white.png" style="display: flex; align-items: center; gap: 1em; border: none; background: none; cursor: pointer;">
+                    <img src="images/wardrobe_white.png" alt="Wardrobe - White" style="width: 64px; height: 64px; object-fit: contain;"/>
+                    <span style="font-size: 1.1em;">Wardrobe - White</span>
+                  </button>
+                  <button class="add-item-btn" data-model-name="Bookshelf" data-model-url="images/bookshelf.png" style="display: flex; align-items: center; gap: 1em; border: none; background: none; cursor: pointer;">
+                    <img src="images/bookshelf.png" alt="Bookshelf" style="width: 64px; height: 64px; object-fit: contain;"/>
+                    <span style="font-size: 1.1em;">Bookshelf</span>
+                  </button>
+                  <button class="add-item-btn" data-model-name="Dresser - Dark Wood" data-model-url="images/dresser_dark.png" style="display: flex; align-items: center; gap: 1em; border: none; background: none; cursor: pointer;">
+                    <img src="images/dresser_dark.png" alt="Dresser - Dark Wood" style="width: 64px; height: 64px; object-fit: contain;"/>
+                    <span style="font-size: 1.1em;">Dresser - Dark Wood</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Right: Description Panel -->
+    <div id="app-right" style="flex: 1 1 40%; min-width: 320px; background: #fff; padding: 48px 32px; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; box-shadow: -2px 0 8px rgba(0,0,0,0.03);">
+      <h1 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 1rem; color: #222;">Hacks and Racks Demo </h1>
+      <!-- <img src="images/logo.png" alt="Celume Logo" style="max-width: 30px; height: auto; margin-bottom: 2rem;"> -->
+      <p style="font-size: 1.1rem; color: #444; line-height: 1.7; max-width: 500px;">
+        This is a 3D web application allowing us to convert floor plans to 3D scenes and then place furniture. The system should be made modular and improvements can be made to achieve a better user experience.
+      </p>
+      <div id="quick-add-items" style="margin-top: 2em; width: 100%; display: flex; flex-direction: column; gap: 1em;">
+        <button class="add-item-btn" model-name="Dresser - White" model-url="models/js/we-narrow6white_baked.js" model-type="1" model-format="" style="display: flex; align-items: center; gap: 1em; border: none; background: #f7f7f7; cursor: pointer; padding: 0.5em 1em; border-radius: 8px;">
+          <img src="models/thumbnails/thumbnail_img25o.jpg" alt="Dresser - White" style="width: 64px; height: 64px; object-fit: contain;"/>
+          <span style="font-size: 1.1em;">Dresser - White</span>
+        </button>
+        <button class="add-item-btn" model-name="Wardrobe - White" model-url="models/js/ik-kivine_baked.js" model-type="1" model-format="" style="display: flex; align-items: center; gap: 1em; border: none; background: #f7f7f7; cursor: pointer; padding: 0.5em 1em; border-radius: 8px;">
+          <img src="models/thumbnails/thumbnail_TN-ikea-kvikine.png" alt="Wardrobe - White" style="width: 64px; height: 64px; object-fit: contain;"/>
+          <span style="font-size: 1.1em;">Wardrobe - White</span>
+        </button>
+        <button class="add-item-btn" model-name="Bookshelf" model-url="models/js/cb-kendallbookcasewalnut_baked.js" model-type="1" model-format="" style="display: flex; align-items: center; gap: 1em; border: none; background: #f7f7f7; cursor: pointer; padding: 0.5em 1em; border-radius: 8px;">
+          <img src="models/thumbnails/thumbnail_kendall-walnut-bookcase.jpg" alt="Bookshelf" style="width: 64px; height: 64px; object-fit: contain;"/>
+          <span style="font-size: 1.1em;">Bookshelf</span>
+        </button>
+        <button class="add-item-btn" model-name="Dresser - Dark Wood" model-url="models/js/DWR_MATERA_DRESSER2.js" model-type="1" model-format="" style="display: flex; align-items: center; gap: 1em; border: none; background: #f7f7f7; cursor: pointer; padding: 0.5em 1em; border-radius: 8px;">
+          <img src="models/thumbnails/thumbnail_matera_dresser_5.png" alt="Dresser - Dark Wood" style="width: 64px; height: 64px; object-fit: contain;"/>
+          <span style="font-size: 1.1em;">Dresser - Dark Wood</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <script>
+  $(document).ready(function() {
+    $('#quick-add-items .add-item-btn').on('click', function(e) {
+      var modelUrl = $(this).attr('model-url');
+      var itemType = parseInt($(this).attr('model-type'));
+      var itemFormat = $(this).attr('model-format');
+      var metadata = {
+        itemName: $(this).attr('model-name'),
+        resizable: true,
+        modelUrl: modelUrl,
+        itemType: itemType,
+        format: itemFormat,
+      };
+      if(typeof aWall !== 'undefined' && [2,3,7,9].indexOf(itemType) != -1 && aWall.currentWall) {
+        var placeAt = aWall.currentWall.center.clone();
+        blueprint3d.model.scene.addItem(itemType, modelUrl, metadata, null, null, null, false, {position: placeAt, edge: aWall.currentWall});
+      } else if(typeof aWall !== 'undefined' && aWall.currentFloor) {
+        var placeAt = aWall.currentFloor.center.clone();
+        blueprint3d.model.scene.addItem(itemType, modelUrl, metadata, null, null, null, false, {position: placeAt});
+      } else {
+        blueprint3d.model.scene.addItem(itemType, modelUrl, metadata);
+      }
+    });
+  });
+  </script>
 </body>
 </html>

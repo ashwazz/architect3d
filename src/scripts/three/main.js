@@ -302,23 +302,26 @@ export class Main extends EventDispatcher
 	{
 		var scope = this;
 
-		scope.heightMargin = scope.element.offset().top;
-		scope.widthMargin = scope.element.offset().left;
-		scope.elementWidth = scope.element.innerWidth();
+		var cardElem = document.querySelector('#app-left .card');
+		var cardRect = cardElem ? cardElem.getBoundingClientRect() : {top: 0, left: 0};
+		// Set margins to the offset of the .card relative to the window
+		scope.widthMargin = cardRect.left;
+		scope.heightMargin = cardRect.top;
+		scope.elementWidth = cardElem ? cardElem.offsetWidth : scope.element.innerWidth();
 
 		if (scope.options.resize)
 		{
-			scope.elementHeight = window.innerHeight - scope.heightMargin;
+			scope.elementHeight = cardElem ? cardElem.offsetHeight : window.innerHeight - scope.heightMargin;
 		}
 		else
 		{
-			scope.elementHeight = scope.element.innerHeight();
+			scope.elementHeight = cardElem ? cardElem.offsetHeight : scope.element.innerHeight();
 		}
 
-		scope.orthocamera.left = -window.innerWidth / 1.0;
-		scope.orthocamera.right = window.innerWidth / 1.0;
-		scope.orthocamera.top = window.innerHeight / 1.0;
-		scope.orthocamera.bottom = -window.innerHeight / 1.0;
+		scope.orthocamera.left = -scope.elementWidth / 1.0;
+		scope.orthocamera.right = scope.elementWidth / 1.0;
+		scope.orthocamera.top = scope.elementHeight / 1.0;
+		scope.orthocamera.bottom = -scope.elementHeight / 1.0;
 		scope.orthocamera.updateProjectionMatrix();
 
 		scope.perspectivecamera.aspect = scope.elementWidth / scope.elementHeight;
@@ -332,18 +335,26 @@ export class Main extends EventDispatcher
 	}
 
 	centerCamera()
-	{
-		var scope = this;
-		var yOffset = 150.0;
-		var pan = scope.model.floorplan.getCenter();
-		pan.y = yOffset;
-		scope.controls.target = pan;
-		var distance = scope.model.floorplan.getSize().z * 1.5;
-		var offset = pan.clone().add(new Vector3(0, distance, distance));
-		// scope.controls.setOffset(offset);
-		scope.camera.position.copy(offset);
-		scope.controls.update();
-	}
+{
+    var scope = this;
+    var pan = scope.model.floorplan.getCenter();
+    var roomSize = scope.model.floorplan.getSize();
+    var cameraHeight = 450; // height above the floor
+    var cameraOffsetZ = Math.max(100, roomSize.z * 0.1);
+    var cameraPos = pan.clone();
+    cameraPos.y += cameraHeight;
+    cameraPos.z += cameraOffsetZ;
+
+    // Set the camera position
+    scope.camera.position.copy(cameraPos);
+
+    // Set the controls target to a point above the center, so the camera looks more horizontally
+    var lookTarget = pan.clone();
+    lookTarget.y += 350; // raise this value to look more at the walls
+    scope.controls.target.copy(lookTarget);
+
+    scope.controls.update();
+}
 
 	// projects the object's center point into x,y screen coords
 	// x,y are relative to top left corner of viewer
@@ -556,4 +567,19 @@ export class Main extends EventDispatcher
 		}
 		scope.lastRender = Date.now();
 	}
+}
+
+function datGUI(three, floorplanner)
+{
+    gui = new dat.GUI();
+    gui.close(); // Keep controls closed by default
+    aCameraRange = new CameraProperties();
+    aCameraRange.three = three;
+    aGlobal = new GlobalProperties();
+    globalPropFolder = getGlobalPropertiesFolder(gui, aGlobal, floorplanner);
+    f3d = globalPropFolder.addFolder('3D Editor')
+    cameraPropFolder = getCameraRangePropertiesFolder(f3d, aCameraRange);
+    var view2df = construct2dInterfaceFolder(globalPropFolder, aGlobal, floorplanner);
+    view2df.open();
+    selectionsFolder = gui.addFolder('Selections');
 }
